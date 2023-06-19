@@ -53,7 +53,7 @@ void execute_command(char* input) {
             path_token = strtok(NULL, ":");
         }
 
-        printf("Command not found: %s\n", arguments[0]);
+        printf("No such file or directory: %s\n", arguments[0]);
         exit(EXIT_FAILURE);
     } else {
         /* Parent process */

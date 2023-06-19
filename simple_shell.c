@@ -1,8 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/wait.h>
 #include "main.h"
 
 #define BUFFER_SIZE 1024
@@ -11,7 +6,7 @@ int main(void) {
     char input[BUFFER_SIZE];
 
     while (1) {
-        printf("my_simple_shell$ ");
+        printf("simple_shell$ ");
         fflush(stdout);
 
         if (fgets(input, BUFFER_SIZE, stdin) == NULL) {
