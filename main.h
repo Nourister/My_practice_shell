@@ -14,6 +14,7 @@ void display_prompt();
 char *find_executable(char *command);
 void execute_command(char* input);
 void print_environment();
+char *custom_getline();
 
 extern char **environ;
 

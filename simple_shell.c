@@ -2,25 +2,42 @@
 
 #define BUFFER_SIZE 1024
 
+char *custom_getline(void) {
+    static char buffer[BUFFER_SIZE];
+    static int position = 0;
+    static ssize_t bytes_read = 0;
+
+    if (position >= bytes_read) {
+        position = 0;
+        bytes_read = read(STDIN_FILENO, buffer, BUFFER_SIZE);
+        if (bytes_read <= 0) {
+            return NULL;
+        }
+    }
+
+    return &buffer[position++];
+}
+
 int main(void) {
     char *input = NULL;
-    size_t input_size = 0;
-    ssize_t bytes_read;
+    size_t input_length;
 
     while (1) {
-        printf("simple_shell$ ");
-        fflush(stdout);
+        display_prompt();
+        fflush(stdout);  /* Flush the output buffer */
 
-        bytes_read = getline(&input, &input_size, stdin);
+        input = custom_getline();
 
-        if (bytes_read == -1) {
+        if (input == NULL) {
             printf("\n");
             break;  /* End of file (Ctrl+D) detected, exit the shell */
         }
 
+        input_length = strlen(input); /* Move the assignment here */
+
         /* Remove the trailing newline character */
-        if (bytes_read > 0 && input[bytes_read - 1] == '\n') {
-            input[bytes_read - 1] = '\0';
+        if (input_length > 0 && input[input_length - 1] == '\n') {
+            input[input_length - 1] = '\0';
         }
 
         if (strcmp(input, "exit") == 0) {
@@ -31,9 +48,9 @@ int main(void) {
         }
 
         execute_command(input);
+        free(input);
     }
 
-    free(input);
     return EXIT_SUCCESS;
 }
 
