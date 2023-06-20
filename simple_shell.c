@@ -3,19 +3,25 @@
 #define BUFFER_SIZE 1024
 
 int main(void) {
-    char input[BUFFER_SIZE];
+    char *input = NULL;
+    size_t input_size = 0;
+    ssize_t bytes_read;
 
     while (1) {
         printf("simple_shell$ ");
         fflush(stdout);
 
-        if (fgets(input, BUFFER_SIZE, stdin) == NULL) {
+        bytes_read = getline(&input, &input_size, stdin);
+
+        if (bytes_read == -1) {
             printf("\n");
             break;  /* End of file (Ctrl+D) detected, exit the shell */
         }
 
         /* Remove the trailing newline character */
-        input[strcspn(input, "\n")] = '\0';
+        if (bytes_read > 0 && input[bytes_read - 1] == '\n') {
+            input[bytes_read - 1] = '\0';
+        }
 
         if (strcmp(input, "exit") == 0) {
             break;  /* Exit the shell */
@@ -27,6 +33,7 @@ int main(void) {
         execute_command(input);
     }
 
+    free(input);
     return EXIT_SUCCESS;
 }
 
