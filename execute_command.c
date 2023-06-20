@@ -27,13 +27,30 @@ void execute_command(char* input) {
 
         if (strcmp(arguments[0], "exit") == 0) {
             /* Handle exit command */
-            exit(EXIT_SUCCESS);
+            if (i > 1) {
+                int status = atoi(arguments[1]);
+                exit(status);
+            } else {
+                exit(EXIT_SUCCESS);
+            }
         } else if (strcmp(arguments[0], "env") == 0) {
             /* Handle env command */
-            char** env = environ;
-            while (*env != NULL) {
-                printf("%s\n", *env);
-                env++;
+            print_environment();
+            exit(EXIT_SUCCESS);
+        } else if (strcmp(arguments[0], "setenv") == 0) {
+            /* Handle setenv command */
+            if (i == 3) {
+                setenv(arguments[1], arguments[2], 1);
+            } else {
+                fprintf(stderr, "Usage: setenv VARIABLE VALUE\n");
+            }
+            exit(EXIT_SUCCESS);
+        } else if (strcmp(arguments[0], "unsetenv") == 0) {
+            /* Handle unsetenv command */
+            if (i == 2) {
+                unsetenv(arguments[1]);
+            } else {
+                fprintf(stderr, "Usage: unsetenv VARIABLE\n");
             }
             exit(EXIT_SUCCESS);
         }
@@ -64,5 +81,4 @@ void execute_command(char* input) {
         }
     }
 }
-
 

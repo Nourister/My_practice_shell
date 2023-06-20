@@ -1,17 +1,14 @@
 #include "main.h"
 
-#define BUFFER_SIZE 1024
-
 int main(void) {
     char *input = NULL;
-    size_t input_size = 0;
     ssize_t bytes_read;
 
     while (1) {
-        printf("simple_shell$ ");
+        display_prompt();
         fflush(stdout);
 
-        bytes_read = getline(&input, &input_size, stdin);
+        bytes_read = get_input(&input);
 
         if (bytes_read == -1) {
             printf("\n");
@@ -29,9 +26,9 @@ int main(void) {
         }
 
         execute_command(input);
+        free(input);
     }
 
-    free(input);
     return EXIT_SUCCESS;
 }
 
