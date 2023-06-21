@@ -14,7 +14,6 @@ void print_environment();
 void display_prompt();
 void set_environment_variable(char* variable, char* value);
 void unset_environment_variable(char* variable);
-ssize_t get_input(char** input);
 
 extern char** environ;
 

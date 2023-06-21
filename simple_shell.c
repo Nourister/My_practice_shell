@@ -2,33 +2,31 @@
 
 int main(void) {
     char *input = NULL;
+    size_t input_size = 0;
     ssize_t bytes_read;
 
     while (1) {
-        display_prompt();
+        printf("simple_shell$ ");
         fflush(stdout);
 
-        bytes_read = get_input(&input);
+        bytes_read = getline(&input, &input_size, stdin);
 
         if (bytes_read == -1) {
-            printf("\n");
-            break;  /* End of file (Ctrl+D) detected, exit the shell */
+            if (feof(stdin)) {
+                printf("\n");
+                break;
+            } else {
+                perror("getline");
+                exit(EXIT_FAILURE);
+            }
         }
 
-        /* Remove the trailing newline character */
-        input[strcspn(input, "\n")] = '\0';
-
-        if (strcmp(input, "exit") == 0) {
-            break;  /* Exit the shell */
-        } else if (strcmp(input, "env") == 0) {
-            print_environment();
-            continue;
-        }
+        input[bytes_read - 1] = '\0';
 
         execute_command(input);
-        free(input);
     }
 
-    return EXIT_SUCCESS;
-}
+    free(input);
 
+    return 0;
+}
