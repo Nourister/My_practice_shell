@@ -7,14 +7,39 @@
 
 char* get_input() {
     char* input = malloc(100 * sizeof(char));
-    printf("Simple_shell$: ");
+    printf("Simple_shell$ ");
     fgets(input, 100, stdin);
     return input;
 }
 
+void replace_variable(char* command, const char* variable, const char* value) {
+    char* variable_ptr = strstr(command, variable);
+    while (variable_ptr != NULL) {
+        strncpy(variable_ptr, value, strlen(value));
+        variable_ptr = strstr(command, variable);
+    }
+}
+
+void handle_variables(char* command, int last_status) {
+    pid_t pid;
+    char pid_str[16];
+    
+    pid = getpid();
+    snprintf(pid_str, sizeof(pid_str), "%d", pid);
+    replace_variable(command, "$$", pid_str);
+    
+    replace_variable(command, "$?", last_status == 0 ? "0" : "1");
+}
+
 void execute_commands(char* commands[MAX_COMMANDS][MAX_ARGS], int num_commands) {
     int i;
+    int last_status = 0;
+    
     for (i = 0; i < num_commands; i++) {
+        if (commands[i][0] == NULL || commands[i][0][0] == '#') {
+            continue;
+        }
+
         if (is_built_in_command(commands[i][0])) {
             if (strcmp(commands[i][0], "cd") == 0) {
                 if (commands[i][1] == NULL) {
@@ -29,8 +54,9 @@ void execute_commands(char* commands[MAX_COMMANDS][MAX_ARGS], int num_commands) 
             }
         } else {
             pid_t pid = fork();
-            
+
             if (pid == 0) {
+                handle_variables(commands[i][0], last_status);
                 execvp(commands[i][0], commands[i]);
                 printf("Failed to execute command: %s\n", commands[i][0]);
                 exit(1);
@@ -38,6 +64,7 @@ void execute_commands(char* commands[MAX_COMMANDS][MAX_ARGS], int num_commands) 
                 if (!is_background_command(commands[i][0])) {
                     int status;
                     waitpid(pid, &status, 0);
+                    last_status = WIFEXITED(status) ? WEXITSTATUS(status) : 1;
                 }
             } else {
                 printf("Failed to fork process\n");
@@ -47,17 +74,49 @@ void execute_commands(char* commands[MAX_COMMANDS][MAX_ARGS], int num_commands) 
     }
 }
 
-int main() {
+int main(int argc, char* argv[]) {
     char* input;
     char* commands[MAX_COMMANDS][MAX_ARGS];
     int num_commands;
-    int i, j;
+    int i;
+    char line[100];
+    
+    if (argc == 2) {
+        FILE* file = fopen(argv[1], "r");
+        if (file == NULL) {
+            printf("Failed to open file: %s\n", argv[1]);
+            return 1;
+        }
+
+        while (fgets(line, sizeof(line), file)) {
+            line[strcspn(line, "\n")] = '\0';
+
+            num_commands = parse_commands(line, commands);
+            execute_commands(commands, num_commands);
+
+            for (i = 0; i < num_commands; i++) {
+                int j;
+                for (j = 0; j < MAX_ARGS; j++) {
+                    free(commands[i][j]);
+                }
+            }
+        }
+
+        fclose(file);
+        return 0;
+    }
+
     while (1) {
         input = get_input();
+        if (input[0] == '#') {
+            continue;
+        }
+        
         num_commands = parse_commands(input, commands);
         execute_commands(commands, num_commands);
-        
+
         for (i = 0; i < num_commands; i++) {
+            int j;
             for (j = 0; j < MAX_ARGS; j++) {
                 free(commands[i][j]);
             }
