@@ -6,8 +6,7 @@ int main(void) {
     ssize_t bytes_read;
 
     while (1) {
-        printf("simple_shell$ ");
-        fflush(stdout);
+        display_prompt();
 
         bytes_read = getline(&input, &input_size, stdin);
 
@@ -23,10 +22,11 @@ int main(void) {
 
         input[bytes_read - 1] = '\0';
 
-        execute_command(input);
+        handle_commands(input);
     }
 
     free(input);
 
     return 0;
 }
+
