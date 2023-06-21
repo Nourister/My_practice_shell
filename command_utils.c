@@ -1,37 +1,44 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
 #include "main.h"
+#include <stdio.h>
+#include <string.h>
 
-void build_command_path(char* command_path, char* path_token, char* command) {
-    strcpy(command_path, path_token);
-    strcat(command_path, "/");
-    strcat(command_path, command);
+bool is_built_in_command(const char* command) {
+    
+    if (strcmp(command, "cd") == 0 || strcmp(command, "exit") == 0) {
+        return true;
+    }
+    
+    return false;
 }
 
-int is_executable(const char* command_path) {
-    return (access(command_path, X_OK) == 0);
+bool is_background_command(const char* command) {
+    
+    size_t len = strlen(command);
+    if (len > 0 && command[len - 1] == '&') {
+        return true;
+    }
+    
+    return false;
 }
 
-void execute_executable(const char* command_path, char** arguments) {
-    pid_t child_pid;
-    int child_status;
-
-    child_pid = fork();
-    if (child_pid == -1) {
-        perror("fork");
-        exit(EXIT_FAILURE);
+int parse_commands(char* input, char* commands[MAX_COMMANDS][MAX_ARGS]) {
+    int num_commands = 0;
+    
+    char* token = strtok(input, " \n");
+    int i;
+    for (i = 0; i < MAX_ARGS && token != NULL; i++) {
+        commands[num_commands][i] = strdup(token);
+        
+        token = strtok(NULL, " \n");
     }
-
-    if (child_pid == 0) {
-        execv(command_path, arguments);
-        perror("execv");
-        exit(EXIT_FAILURE);
-    } else {
-        waitpid(child_pid, &child_status, 0);
+    
+    while (i < MAX_ARGS) {
+        commands[num_commands][i] = NULL;
+        i++;
     }
+    
+    num_commands++;
+    
+    return num_commands;
 }
 
