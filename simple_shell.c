@@ -8,7 +8,12 @@
 char* get_input() {
     char* input = malloc(100 * sizeof(char));
     printf("Simple_shell$ ");
-    fgets(input, 100, stdin);
+
+    if (fgets(input, 100, stdin) == NULL) {
+        free(input);
+        return NULL;
+    }
+
     return input;
 }
 
@@ -108,6 +113,12 @@ int main(int argc, char* argv[]) {
 
     while (1) {
         input = get_input();
+
+        if (input == NULL) {
+            printf("\n");
+            break;
+        }
+
         if (input[0] == '#') {
             continue;
         }
