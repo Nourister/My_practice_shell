@@ -28,11 +28,11 @@ void replace_variable(char* command, const char* variable, const char* value) {
 void handle_variables(char* command, int last_status) {
     pid_t pid;
     char pid_str[16];
-    
+
     pid = getpid();
     snprintf(pid_str, sizeof(pid_str), "%d", pid);
     replace_variable(command, "$$", pid_str);
-    
+
     replace_variable(command, "$?", last_status == 0 ? "0" : "1");
 }
 
@@ -41,12 +41,14 @@ void execute_commands(char* commands[MAX_COMMANDS][MAX_ARGS], int num_commands) 
     int last_status = 0;
     
     for (i = 0; i < num_commands; i++) {
-        if (commands[i][0] == NULL || commands[i][0][0] == '#') {
+        char* command = commands[i][0];
+        
+        if (command == NULL || command[0] == '#') {
             continue;
         }
 
-        if (is_built_in_command(commands[i][0])) {
-            if (strcmp(commands[i][0], "cd") == 0) {
+        if (is_built_in_command(command)) {
+            if (strcmp(command, "cd") == 0) {
                 if (commands[i][1] == NULL) {
                     printf("Missing directory argument for cd command\n");
                 } else {
@@ -54,19 +56,19 @@ void execute_commands(char* commands[MAX_COMMANDS][MAX_ARGS], int num_commands) 
                         printf("Failed to change directory\n");
                     }
                 }
-            } else if (strcmp(commands[i][0], "exit") == 0) {
+            } else if (strcmp(command, "exit") == 0) {
                 exit(0);
             }
         } else {
             pid_t pid = fork();
 
             if (pid == 0) {
-                handle_variables(commands[i][0], last_status);
-                execvp(commands[i][0], commands[i]);
-                printf("Failed to execute command: %s\n", commands[i][0]);
+                handle_variables(command, last_status);
+                execvp(command, commands[i]);
+                printf("Failed to execute command: %s\n", command);
                 exit(1);
             } else if (pid > 0) {
-                if (!is_background_command(commands[i][0])) {
+                if (!is_background_command(command)) {
                     int status;
                     waitpid(pid, &status, 0);
                     last_status = WIFEXITED(status) ? WEXITSTATUS(status) : 1;
@@ -79,13 +81,14 @@ void execute_commands(char* commands[MAX_COMMANDS][MAX_ARGS], int num_commands) 
     }
 }
 
+
 int main(int argc, char* argv[]) {
     char* input;
     char* commands[MAX_COMMANDS][MAX_ARGS];
     int num_commands;
     int i;
     char line[100];
-    
+
     if (argc == 2) {
         FILE* file = fopen(argv[1], "r");
         if (file == NULL) {
@@ -122,7 +125,7 @@ int main(int argc, char* argv[]) {
         if (input[0] == '#') {
             continue;
         }
-        
+
         num_commands = parse_commands(input, commands);
         execute_commands(commands, num_commands);
 

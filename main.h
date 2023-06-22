@@ -14,6 +14,7 @@ void execute_built_in_command(const char* command);
 bool is_built_in_command(const char* command);
 bool is_background_command(const char* command);
 int parse_commands(char* input, char* commands[MAX_COMMANDS][MAX_ARGS]);
+char* trim_whitespace(char* str);
 
 #endif /* MAIN_H */
 
