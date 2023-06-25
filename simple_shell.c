@@ -136,41 +136,35 @@ void execute_commands(char* commands[MAX_COMMANDS][MAX_ARGS], int num_commands)
 /**
  * main - Entry point to a program
  * @argc: The number of command-line arguments
- * @argv: An array of strings representing the command-line arguments
- * Return: The exit status of the program
+ * An array of strings representing the
+ * command-line arguments
+ * The exit status of the program
  */
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
     char* input;
     char* commands[MAX_COMMANDS][MAX_ARGS];
     int num_commands;
     int i;
     char line[100];
 
-    if (argc == 2)
-    {
+    if (argc == 2) {
         FILE* file = fopen(argv[1], "r");
-        if (file == NULL)
-        {
+        if (file == NULL) {
             printf("Failed to open file: %s\n", argv[1]);
             return 1;
         }
 
-        while (fgets(line, sizeof(line), file))
-        {
+        while (fgets(line, sizeof(line), file)) {
             line[strcspn(line, "\n")] = '\0';
 
             num_commands = parse_commands(line, commands);
             execute_commands(commands, num_commands);
 
-            for (i = 0; i < num_commands; i++)
-            {
+            for (i = 0; i < num_commands; i++) {
                 int j;
-                for (j = 0; commands[i][j] != NULL; j++)
-                {
+                for (j = 0; j < MAX_ARGS; j++) {
                     free(commands[i][j]);
-                    commands[i][j] = NULL;
                 }
             }
         }
@@ -179,28 +173,28 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    while (1)
-    {
-        printf("$ ");
+    while (1) {
         input = get_input();
-        if (input == NULL)
+
+        if (input == NULL) {
+            printf("\n");
             break;
+        }
+
+        if (input[0] == '#') {
+            continue;
+        }
 
         num_commands = parse_commands(input, commands);
         execute_commands(commands, num_commands);
 
-        for (i = 0; i < num_commands; i++)
-        {
+        for (i = 0; i < num_commands; i++) {
             int j;
-            for (j = 0; commands[i][j] != NULL; j++)
-            {
+            for (j = 0; j < MAX_ARGS; j++) {
                 free(commands[i][j]);
-                commands[i][j] = NULL;
             }
         }
-
         free(input);
     }
-
     return 0;
 }
