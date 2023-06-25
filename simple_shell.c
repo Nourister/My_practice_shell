@@ -5,61 +5,33 @@
 #include <string.h>
 #include "main.h"
 
-/**
- * get_input - Reads input from the user
- * Return: The input string
- */
+char* custom_getline() {
+    char c;
+    int i = 0;
+    int capacity = 100;
+    char* buffer = malloc(capacity * sizeof(char));
+    if (buffer == NULL) {
+        perror("Memory allocation failed");
+        exit(1);
+    }
 
-char* get_input()
-{
-	char* input = malloc(100 * sizeof(char));
-	printf("Simple_shell$ ");
+    while ((c = getchar()) != '\n') {
+        if (i >= capacity - 1) {
+            char* new_buffer = realloc(buffer, capacity * 2 * sizeof(char));
+            if (new_buffer == NULL) {
+                perror("Memory reallocation failed");
+                free(buffer);
+                exit(1);
+            }
+            buffer = new_buffer;
+            capacity *= 2;
+        }
+        buffer[i++] = c;
+    }
 
-	if (fgets(input, 100, stdin) == NULL)
-	{
-		free(input);
-		return (NULL);
-	}
+    buffer[i] = '\0';
 
-	return input;
-}
-
-/**
- * replace_variable - Replaces a variable in a
- * command with a given value
- * @command: The command string
- * @variable: The variable to replace
- * @value: The value to replace with
- * Return: 0(success)
- */
-
-void replace_variable(char* command, const char* variable, const char* value)
-{
-	char* variable_ptr = strstr(command, variable);
-	while (variable_ptr != NULL)
-	{
-		strncpy(variable_ptr, value, strlen(value));
-		variable_ptr = strstr(command, variable);
-	}
-}
-
-/**
- * handle_variables - Handles variables in a command
- * @command: The command string
- * @last_status: The last command status
- * Return: 0(success)
- */
-
-void handle_variables(char* command, int last_status)
-{
-	pid_t pid;
-	char pid_str[16];
-
-	pid = getpid();
-	snprintf(pid_str, sizeof(pid_str), "%d", pid);
-	replace_variable(command, "$$", pid_str);
-
-	replace_variable(command, "$?", last_status == 0 ? "0" : "1");
+    return buffer;
 }
 
 /**
@@ -82,6 +54,22 @@ void execute_commands(char* commands[MAX_COMMANDS][MAX_ARGS], int num_commands)
         {
             continue;
         }
+
+	if (strcmp(command, "exit") == 0)
+	{
+		exit(0);
+	}
+
+	if (strcmp(command, "env") == 0)
+	{
+		char** env = __environ;
+		while (*env != NULL)
+		{
+			printf("%s\n", *env);
+			env++;
+		}
+		continue;
+	}
 
         if (is_built_in_command(command))
         {
@@ -133,6 +121,39 @@ void execute_commands(char* commands[MAX_COMMANDS][MAX_ARGS], int num_commands)
     }
 }
 
+void interactive_mode() {
+    char* input;
+    char* commands[MAX_COMMANDS][MAX_ARGS];
+    int num_commands;
+    int i;
+
+    while (1) {
+        printf("Simple_shell$ ");
+
+        input = custom_getline();
+
+        if (input == NULL) {
+            printf("\n");
+            break;
+        }
+
+        if (input[0] == '#') {
+            continue;
+        }
+
+        num_commands = parse_commands(input, commands);
+        execute_commands(commands, num_commands);
+
+        for (i = 0; i < num_commands; i++) {
+            int j;
+            for (j = 0; j < MAX_ARGS; j++) {
+                free(commands[i][j]);
+            }
+        }
+        free(input);
+    }
+}
+
 /**
  * main - Entry point to a program
  * @argc: The number of command-line arguments
@@ -142,11 +163,10 @@ void execute_commands(char* commands[MAX_COMMANDS][MAX_ARGS], int num_commands)
  */
 
 int main(int argc, char* argv[]) {
-    char* input;
+    char line[100];
     char* commands[MAX_COMMANDS][MAX_ARGS];
     int num_commands;
     int i;
-    char line[100];
 
     if (argc == 2) {
         FILE* file = fopen(argv[1], "r");
@@ -173,28 +193,7 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    while (1) {
-        input = get_input();
+    interactive_mode();
 
-        if (input == NULL) {
-            printf("\n");
-            break;
-        }
-
-        if (input[0] == '#') {
-            continue;
-        }
-
-        num_commands = parse_commands(input, commands);
-        execute_commands(commands, num_commands);
-
-        for (i = 0; i < num_commands; i++) {
-            int j;
-            for (j = 0; j < MAX_ARGS; j++) {
-                free(commands[i][j]);
-            }
-        }
-        free(input);
-    }
     return 0;
 }
