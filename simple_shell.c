@@ -4,6 +4,11 @@
 #include <sys/wait.h>
 #include <string.h>
 #include "main.h"
+/**
+ * custom_getline - reads a line of input from the user and returns
+ * a dynamically allocated string
+ * Return: dynamically allocated string
+ */
 
 char *custom_getline()
 {
@@ -23,6 +28,7 @@ char *custom_getline()
 		if (i >= capacity - 1)
 		{
 			char *new_buffer = realloc(buffer, capacity * 2 * sizeof(char));
+
 			if (new_buffer == NULL)
 			{
 				perror("Memory reallocation failed");
@@ -56,13 +62,19 @@ void execute_commands(char *commands[MAX_COMMANDS][MAX_ARGS], int num_commands)
 
 		if (command == NULL || command[0] == '#')
 			continue;
-		if (strcmp(command, "exit") == 0) exit(0);
+
+		if (strcmp(command, "exit") == 0)
+			exit(0);
+
 		if (strcmp(command, "env") == 0)
 		{
 			char **env = __environ;
-			while (*env) printf("%s\n", *env++);
-			continue;
+
+			while (*env)
+				printf("%s\n", *env++)
+				continue;
 		}
+
 		if (is_built_in_command(command))
 		{
 			if (strcmp(command, "cd") == 0)
@@ -72,11 +84,13 @@ void execute_commands(char *commands[MAX_COMMANDS][MAX_ARGS], int num_commands)
 				else if (chdir(commands[i][1]) != 0)
 					printf("Failed to change directory\n");
 			}
-			else if (strcmp(command, "exit") == 0) exit(0);
+			else if (strcmp(command, "exit") == 0)
+				exit(0);
 		}
 		else
 		{
 			pid_t pid = fork();
+
 			if (pid == 0)
 			{
 				handle_variables(command, last_status);
@@ -87,6 +101,7 @@ void execute_commands(char *commands[MAX_COMMANDS][MAX_ARGS], int num_commands)
 			else if (pid > 0 && !is_background_command(command))
 			{
 				int status;
+
 				waitpid(pid, &status, 0);
 				last_status = WIFEXITED(status) ? WEXITSTATUS(status) : 1;
 			}
@@ -103,32 +118,39 @@ void execute_commands(char *commands[MAX_COMMANDS][MAX_ARGS], int num_commands)
  * shell program
  * Return: 0(success)
  */
-void interactive_mode() {
+void interactive_mode(void)
+{
 	char *input;
 	char *commands[MAX_COMMANDS][MAX_ARGS];
 	int num_commands;
 	int i;
 
-	while (1) {
+	while (1)
+	{
 		printf("Simple_shell$ ");
 
 		input = custom_getline();
 
-		if (input == NULL) {
+		if (input == NULL)
+		{
 			printf("\n");
 			break;
 		}
 
-		if (input[0] == '#') {
+		if (input[0] == '#')
+		{
 			continue;
 		}
 
 		num_commands = parse_commands(input, commands);
 		execute_commands(commands, num_commands);
 
-		for (i = 0; i < num_commands; i++) {
+		for (i = 0; i < num_commands; i++)
+		{
 			int j;
-			for (j = 0; j < MAX_ARGS; j++) {
+
+			for (j = 0; j < MAX_ARGS; j++)
+			{
 				free(commands[i][j]);
 			}
 		}
@@ -142,38 +164,46 @@ void interactive_mode() {
  * @argv: An array of strings representing thecommand-line arguments
  * Return: 0 (success)
  */
-int main(int argc, char *argv[]) {
-    char line[100];
-    char *commands[MAX_COMMANDS][MAX_ARGS];
-    int num_commands;
-    int i;
+int main(int argc, char *argv[])
+{
+	char line[100];
+	char *commands[MAX_COMMANDS][MAX_ARGS];
+	int num_commands;
+	int i;
 
-    if (argc == 2) {
-        FILE *file = fopen(argv[1], "r");
-        if (file == NULL) {
-            printf("Failed to open file: %s\n", argv[1]);
-            return (1);
-        }
+	if (argc == 2)
+	{
+		FILE *file = fopen(argv[1], "r");
 
-        while (fgets(line, sizeof(line), file)) {
-            line[strcspn(line, "\n")] = '\0';
+		if (file == NULL)
+		{
+			printf("Failed to open file: %s\n", argv[1]);
+			return (1);
+		}
 
-            num_commands = parse_commands(line, commands);
-            execute_commands(commands, num_commands);
+		while (fgets(line, sizeof(line), file))
+		{
+			line[strcspn(line, "\n")] = '\0';
 
-            for (i = 0; i < num_commands; i++) {
-                int j;
-                for (j = 0; j < MAX_ARGS; j++) {
-                    free(commands[i][j]);
-                }
-            }
-        }
+			num_commands = parse_commands(line, commands);
+			execute_commands(commands, num_commands);
 
-        fclose(file);
-        return (0);
-    }
+			for (i = 0; i < num_commands; i++)
+			{
+				int j;
 
-    interactive_mode();
+				for (j = 0; j < MAX_ARGS; j++)
+				{
+					free(commands[i][j]);
+				}
+			}
+		}
 
-    return (0);
+		fclose(file);
+		return (0);
+	}
+
+	interactive_mode();
+
+	return (0);
 }
