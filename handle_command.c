@@ -8,13 +8,14 @@
  * is_built_in_command - Check if a command is a built-in command
  * @command: The command to check
  *
- * Return: true if the command is a built-in command, false otherwise
+ * Return: true if the command is a built-in command,
+ * false otherwise
  */
-bool is_built_in_command(const char* command)
+bool is_built_in_command(const char *command)
 {
 	if (strcmp(command, "cd") == 0 || strcmp(command, "exit") == 0)
 	{
-		return true;
+		return (true);
 	}
 
 	return (false);
@@ -27,7 +28,7 @@ bool is_built_in_command(const char* command)
  * Return: true if the command is a background command, false otherwise
  */
 
-bool is_background_command(const char* command)
+bool is_background_command(const char *command)
 {
 	size_t len = strlen(command);
 
@@ -47,12 +48,13 @@ bool is_background_command(const char* command)
  * Return: The number of commands parsed
  */
 
-int parse_commands(char* input, char* commands[MAX_COMMANDS][MAX_ARGS])
+int parse_commands(char *input, char *commands[MAX_COMMANDS][MAX_ARGS])
 {
 	int num_commands = 0;
 
-	char* token = strtok(input, " \n");
+	char *token = strtok(input, " \n");
 	int i;
+
 	for (i = 0; i < MAX_ARGS && token != NULL; i++)
 	{
 		commands[num_commands][i] = strdup(token);
@@ -78,9 +80,9 @@ int parse_commands(char* input, char* commands[MAX_COMMANDS][MAX_ARGS])
  * Return: The trimmed string
  */
 
-char* trim_whitespace(char* str)
+char *trim_whitespace(char *str)
 {
-	char* end;
+	char *end;
 
 	while (isspace((unsigned char)*str))
 	{

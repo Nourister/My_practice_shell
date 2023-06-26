@@ -4,9 +4,13 @@
 #include <sys/wait.h>
 #include <string.h>
 #include "main.h"
-
-void display_prompt() {
-    printf("Simple_shell$ ");
+/**
+ * display_prompt - displays the prompt simple_shell$
+ * Return: void
+ */
+void display_prompt(void)
+{
+	printf("Simple_shell$ ");
 }
 
 
@@ -19,9 +23,10 @@ void display_prompt() {
  * Return: 0(success)
  */
 
-void replace_variable(char* command, const char* variable, const char* value)
+void replace_variable(char *command, const char *variable, const char *value)
 {
-	char* variable_ptr = strstr(command, variable);
+	char *variable_ptr = strstr(command, variable);
+
 	while (variable_ptr != NULL)
 	{
 		strncpy(variable_ptr, value, strlen(value));
@@ -36,7 +41,7 @@ void replace_variable(char* command, const char* variable, const char* value)
  * Return: 0(success)
  */
 
-void handle_variables(char* command, int last_status)
+void handle_variables(char *command, int last_status)
 {
 	pid_t pid;
 	char pid_str[16];
